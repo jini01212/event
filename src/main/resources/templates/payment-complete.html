@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('예매 완료')}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- 진행 단계 표시 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="bg-success" style="width: 100px; height: 2px;"></div>
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="bg-success" style="width: 100px; height: 2px;"></div>
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-center mt-2">
+                        <small class="text-success me-4 fw-bold">정보입력</small>
+                        <small class="text-success me-4 fw-bold">결제하기</small>
+                        <small class="text-success fw-bold">완료</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 완료 메시지 -->
+            <div class="text-center mb-5">
+                <div class="mb-4">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                        <i class="fas fa-check fa-3x"></i>
+                    </div>
+                </div>
+                <h1 class="display-5 mb-3 text-success">예매가 접수되었습니다! 🎉</h1>
+                <p class="lead text-muted">
+                    결제 확인 후 티켓이 발급됩니다.<br>
+                    티켓 정보는 등록하신 이메일로도 발송됩니다.
+                </p>
+            </div>
+
+            <!-- 티켓 정보 카드 -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-ticket-alt me-2"></i>예매 정보
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- 티켓번호 - 하이라이트 -->
+                    <div class="alert alert-primary text-center mb-4">
+                        <h6 class="mb-2">티켓번호</h6>
+                        <div class="display-6 ticket-number fw-bold" th:text="${reservation.ticketNumber}"></div>
+                        <button class="btn btn-outline-primary btn-sm mt-2"
+                                onclick="copyTicketNumber(this)"
+                                th:data-ticket="${reservation.ticketNumber}">
+                            <i class="fas fa-copy me-1"></i>티켓번호 복사
+                        </button>
+                    </div>
+
+                    <!-- 상세 정보 -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-calendar me-2"></i>이벤트</h6>
+                                <p class="fw-bold mb-0" th:text="${reservation.event.title}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-clock me-2"></i>일시</h6>
+                                <p class="mb-0" th:text="${#temporals.format(reservation.event.eventDate, 'yyyy년 MM월 dd일 (E) HH:mm')}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-map-marker-alt me-2"></i>장소</h6>
+                                <p class="mb-0" th:text="${reservation.event.location}"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-user me-2"></i>예매자</h6>
+                                <p class="mb-0" th:text="${reservation.customerName}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-envelope me-2"></i>이메일</h6>
+                                <p class="mb-0" th:text="${reservation.customerEmail}"></p>
+                            </div>
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-1"><i class="fas fa-ticket-alt me-2"></i>수량 & 금액</h6>
+                                <p class="mb-0">
+                                    <span th:text="${reservation.ticketCount}"></span>매 ·
+                                    <span class="fw-bold text-primary" th:text="${#numbers.formatDecimal(reservation.totalPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결제 상태 -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                                <div>
+                                    <h6 class="mb-1">결제 상태</h6>
+                                    <span th:if="${reservation.paymentStatus.name() == 'PENDING'}"
+                                          class="badge bg-warning fs-6">
+                                        <i class="fas fa-clock me-1"></i>결제 확인 중
+                                    </span>
+                                    <span th:if="${reservation.paymentStatus.name() == 'COMPLETED'}"
+                                          class="badge bg-success fs-6">
+                                        <i class="fas fa-check me-1"></i>결제 완료
+                                    </span>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">예매일시</small><br>
+                                    <small th:text="${#temporals.format(reservation.createdAt, 'yyyy.MM.dd HH:mm')}"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 안내 메시지 -->
+            <div class="alert alert-info">
+                <h6><i class="fas fa-lightbulb me-2"></i>안내사항</h6>
+                <ul class="mb-0">
+                    <li><strong>티켓번호를 반드시 기억해두세요!</strong> 현장 입장시 필요합니다</li>
+                    <li>결제 확인 후 이메일로 티켓 정보를 발송해드립니다</li>
+                    <li>현장에서 티켓번호 확인으로 입장하실 수 있습니다</li>
+                    <li>예매 관련 문의는 고객센터(1588-0000)로 연락주세요</li>
+                </ul>
+            </div>
+
+            <!-- 액션 버튼 -->
+            <div class="text-center mt-4">
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i>메인으로
+                    </a>
+                    <a href="/my-tickets" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-list me-2"></i>내 티켓 확인
+                    </a>
+                    <button class="btn btn-outline-success btn-lg" onclick="shareTicket()">
+                        <i class="fas fa-share me-2"></i>공유하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const ticketNumber = /*[[${reservation.ticketNumber}]]*/ '';
+    const eventTitle = /*[[${reservation.event.title}]]*/ '';
+
+    function copyTicketNumber(button) {
+        const ticketNum = button.getAttribute('data-ticket');
+        navigator.clipboard.writeText(ticketNum).then(function() {
+            button.innerHTML = '<i class="fas fa-check me-1"></i>복사완료!';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-success');
+
+            setTimeout(function() {
+                button.innerHTML = '<i class="fas fa-copy me-1"></i>티켓번호 복사';
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-primary');
+            }, 2000);
+        });
+    }
+
+    function shareTicket() {
+        if (navigator.share) {
+            navigator.share({
+                title: '이벤트 예매 완료',
+                text: `${eventTitle} 예매가 완료되었습니다. 티켓번호: ${ticketNumber}`,
+                url: window.location.href
+            });
+        } else {
+            // Web Share API를 지원하지 않는 경우
+            const text = `${eventTitle} 예매 완료! 티켓번호: ${ticketNumber}`;
+            navigator.clipboard.writeText(text).then(function() {
+                alert('공유 텍스트가 복사되었습니다!');
+            });
+        }
+    }
+
+    // 페이지 로드 시 축하 애니메이션
+    document.addEventListener('DOMContentLoaded', function() {
+        // 간단한 축하 효과
+        setTimeout(function() {
+            if (typeof confetti !== 'undefined') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }, 500);
+    });
+</script>
+</body>
+</html>

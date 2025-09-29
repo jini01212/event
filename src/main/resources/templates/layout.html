@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 공통 head fragment -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ?: '이벤트 플랫폼'">이벤트 플랫폼</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .event-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #007bff !important;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            margin-top: 50px;
+        }
+        .ticket-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+
+<!-- 공통 navbar fragment -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-ticket-alt me-2"></i>EventPlatform
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">홈</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/my-tickets">내 티켓</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">관리자</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 공통 footer fragment -->
+<footer th:fragment="footer" class="footer py-4 mt-auto bg-light">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>EventPlatform</h6>
+                <p class="text-muted small">간편한 이벤트 예매 플랫폼</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-0 text-muted">&copy; 2024 EventPlatform. All rights reserved.</p>
+                <small class="text-muted">
+                    <a href="#" class="text-decoration-none">개인정보처리방침</a> |
+                    <a href="#" class="text-decoration-none">이용약관</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</html>

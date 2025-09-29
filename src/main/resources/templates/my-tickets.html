@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('내 티켓')}"></head>
+
+<body class="d-flex flex-column min-vh-100">
+<div th:replace="~{layout :: navbar}"></div>
+
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="display-6">
+            <i class="fas fa-user-circle me-2 text-primary"></i>내 티켓 조회
+        </h2>
+        <p class="lead text-muted">예매하신 티켓을 이메일로 조회할 수 있습니다</p>
+    </div>
+
+    <!-- 이메일 입력 폼 -->
+    <div th:if="${#strings.isEmpty(email)}" class="row justify-content-center mb-5">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search me-2"></i>이메일로 티켓 조회
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="/my-tickets" method="get">
+                        <div class="mb-3">
+                            <label class="form-label">이메일 주소</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope text-primary"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control"
+                                       placeholder="예매시 사용한 이메일을 입력하세요"
+                                       required autofocus>
+                            </div>
+                            <small class="form-text text-muted">
+                                개인정보 보호를 위해 예매시 입력한 이메일 주소가 필요합니다
+                            </small>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search me-2"></i>조회하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 도움말 -->
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-question-circle me-2"></i>도움이 필요하신가요?</h6>
+                    <ul class="mb-0 small">
+                        <li>예매 시 입력한 이메일 주소를 정확히 입력해주세요</li>
+                        <li>스팸함도 확인해보세요 (예매 확인 이메일이 있을 수 있습니다)</li>
+                        <li>문의사항은 고객센터(1588-0000)로 연락주세요</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 티켓 목록 -->
+    <div th:if="${reservations != null}">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1">
+                    <span th:text="${email}"></span>님의 예매 내역
+                    <span class="badge bg-primary" th:text="${#lists.size(reservations)}"></span>
+                </h4>
+                <p class="text-muted mb-0">총 <span th:text="${#lists.size(reservations)}"></span>건의 예매 내역이 있습니다</p>
+            </div>
+            <a href="/my-tickets" class="btn btn-outline-secondary">
+                <i class="fas fa-user-edit me-1"></i>다른 이메일로 조회
+            </a>
+        </div>
+
+        <!-- 예매 내역 없음 -->
+        <div th:if="${#lists.isEmpty(reservations)}" class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">예매 내역이 없습니다</h4>
+            <p class="text-muted">해당 이메일로 예매한 티켓이 없습니다</p>
+            <a href="/" class="btn btn-primary mt-2">
+                <i class="fas fa-calendar-plus me-2"></i>이벤트 둘러보기
+            </a>
+        </div>
+
+        <!-- 티켓 카드들 -->
+        <div class="row g-4" th:unless="${#lists.isEmpty(reservations)}">
+            <div class="col-lg-6 col-xl-4" th:each="reservation : ${reservations}">
+                <div class="card h-100 shadow-sm card-hover">
+                    <!-- 카드 헤더 - 상태별 색상 -->
+                    <div th:class="${reservation.paymentStatus.name() == 'COMPLETED'} ? 'card-header bg-success text-white' :
+                                   ${reservation.paymentStatus.name() == 'PENDING'} ? 'card-header bg-warning text-dark' :
+                                   'card-header bg-secondary text-white'">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0 ticket-number" th:text="${reservation.ticketNumber}"></h6>
+                            </div>
+                            <div>
+                                <span th:if="${reservation.paymentStatus.name() == 'COMPLETED'}"
+                                      class="badge bg-light text-dark">결제완료</span>
+                                <span th:if="${reservation.paymentStatus.name() == 'PENDING'}"
+                                      class="badge bg-dark">결제대기</span>
+                                <span th:if="${reservation.paymentStatus.name() == 'FAILED'}"
+                                      class="badge bg-light text-dark">결제실패</span>
+
+                                <span th:if="${reservation.used}"
+                                      class="badge bg-light text-dark ms-1">사용완료</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold text-truncate" th:text="${reservation.event.title}"></h6>
+
+                        <div class="mb-3">
+                            <div class="small text-muted mb-1">
+                                <i class="fas fa-calendar me-1 text-primary"></i>
+                                <span th:text="${#temporals.format(reservation.event.eventDate, 'yyyy.MM.dd (E) HH:mm')}"></span>
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                <span class="text-truncate d-inline-block" style="max-width: 200px;" th:text="${reservation.event.location}"></span>
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="fas fa-ticket-alt me-1 text-primary"></i>
+                                <span th:text="${reservation.ticketCount} + '매'"></span> ·
+                                <span class="fw-bold" th:text="${#numbers.formatDecimal(reservation.totalPrice, 0, 'COMMA', 0, 'POINT')} + '원'"></span>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas fa-clock me-1 text-primary"></i>
+                                예매일: <span th:text="${#temporals.format(reservation.createdAt, 'MM.dd HH:mm')}"></span>
+                            </div>
+                        </div>
+
+                        <!-- 상태별 메시지 -->
+                        <div th:if="${reservation.paymentStatus.name() == 'PENDING'}" class="alert alert-warning py-2 small">
+                            <i class="fas fa-hourglass-half me-1"></i>결제 확인 대기중입니다
+                        </div>
+
+                        <div th:if="${reservation.paymentStatus.name() == 'COMPLETED' && !reservation.used}" class="alert alert-success py-2 small">
+                            <i class="fas fa-check-circle me-1"></i>현장에서 티켓번호를 제시하세요
+                        </div>
+
+                        <div th:if="${reservation.used}" class="alert alert-secondary py-2 small">
+                            <i class="fas fa-check-double me-1"></i>
+                            <span th:text="${#temporals.format(reservation.usedAt, 'MM.dd HH:mm')}"></span>에 입장완료
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary"
+                                    onclick="copyTicketNumber(this)"
+                                    th:data-ticket="${reservation.ticketNumber}">
+                                <i class="fas fa-copy me-1"></i>번호복사
+                            </button>
+                            <a th:href="@{/ticket/{ticketNumber}(ticketNumber=${reservation.ticketNumber})}"
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-1"></i>상세보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 액션 -->
+        <div class="text-center mt-5" th:unless="${#lists.isEmpty(reservations)}">
+            <a href="/" class="btn btn-primary btn-lg">
+                <i class="fas fa-calendar-plus me-2"></i>다른 이벤트 보기
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function copyTicketNumber(button) {
+        const ticketNumber = button.getAttribute('data-ticket');
+        navigator.clipboard.writeText(ticketNumber).then(function() {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>복사완료';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-success');
+
+            setTimeout(function() {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-primary');
+            }, 2000);
+        }).catch(function() {
+            alert('복사에 실패했습니다: ' + ticketNumber);
+        });
+    }
+</script>
+</body>
+</html>

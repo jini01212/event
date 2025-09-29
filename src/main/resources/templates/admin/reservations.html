@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='예매 관리')}"></head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/admin">
+            <i class="fas fa-cogs me-2"></i>관리자
+        </a>
+
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" href="/admin">대시보드</a>
+            <a class="nav-link" href="/">사용자 페이지</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>예매 관리</h2>
+        <div class="btn-group" role="group">
+            <a href="/admin/reservations"
+               th:classappend="${currentStatus == null ? 'active' : ''}"
+               class="btn btn-outline-primary">전체</a>
+            <a href="/admin/reservations?status=PENDING"
+               th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}"
+               class="btn btn-outline-warning">대기중</a>
+            <a href="/admin/reservations?status=COMPLETED"
+               th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}"
+               class="btn btn-outline-success">완료</a>
+            <a href="/admin/reservations?status=FAILED"
+               th:classappend="${currentStatus == 'FAILED' ? 'active' : ''}"
+               class="btn btn-outline-danger">실패</a>
+        </div>
+    </div>
+
+    <!-- 알림 메시지 -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(reservations)}" class="text-center py-4">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">예매 내역이 없습니다</h5>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(reservations)}" class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>티켓번호</th>
+                        <th>이벤트</th>
+                        <th>예매자</th>
+                        <th>연락처</th>
+                        <th>수량</th>
+                        <th>금액</th>
+                        <th>결제방식</th>
+                        <th>상태</th>
+                        <th>예매일</th>
+                        <th>작업</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="reservation : ${reservations}">
+                        <td>
+                            <span class="ticket-number" th:text="${reservation.ticketNumber}"></span>
+                            <span th:if="${reservation.used}" class="badge bg-secondary ms-1">사용됨</span>
+                        </td>
+                        <td>
+                            <strong th:text="${reservation.event.title}"></strong>
+                            <br>
+                            <small class="text-muted" th:text="${reservation.event.location}"></small>
+                        </td>
+                        <td>
+                            <div th:text="${reservation.customerName}"></div>
+                            <small class="text-muted" th:text="${reservation.customerEmail}"></small>
+                        </td>
+                        <td th:text="${reservation.customerPhone}"></td>
+                        <td><span th:text="${reservation.ticketCount}"></span>매</td>
+                        <td th:text="${#numbers.formatCurrency(reservation.totalPrice)} + '원'"></td>
+                        <td>
+                            <span th:if="${reservation.paymentMethod.name() == 'TOSS'}" class="badge bg-info">토스페이</span>
+                            <span th:if="${reservation.paymentMethod.name() == 'KAKAO'}" class="badge bg-warning">카카오페이</span>
+                            <span th:if="${reservation.paymentMethod.name() == 'BANK_TRANSFER'}" class="badge bg-success">계좌이체</span>
+                        </td>
+                        <td>
+                            <span th:if="${reservation.paymentStatus.name() == 'PENDING'}" class="badge bg-warning">대기중</span>
+                            <span th:if="${reservation.paymentStatus.name() == 'COMPLETED'}" class="badge bg-success">완료</span>
+                            <span th:if="${reservation.paymentStatus.name() == 'FAILED'}" class="badge bg-danger">실패</span>
+                            <span th:if="${reservation.paymentStatus.name() == 'CANCELLED'}" class="badge bg-secondary">취소</span>
+                        </td>
+                        <td th:text="${#temporals.format(reservation.createdAt, 'MM/dd HH:mm')}"></td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button th:if="${reservation.paymentStatus.name() == 'PENDING'}"
+                                        class="btn btn-sm btn-success"
+                                        onclick="confirmPayment(this)"
+                                        th:data-id="${reservation.id}"
+                                        th:data-ticket="${reservation.ticketNumber}">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button th:if="${reservation.paymentStatus.name() == 'PENDING'}"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="failPayment(this)"
+                                        th:data-id="${reservation.id}"
+                                        th:data-ticket="${reservation.ticketNumber}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function confirmPayment(button) {
+        const reservationId = button.getAttribute('data-id');
+        const ticketNumber = button.getAttribute('data-ticket');
+
+        if (confirm('티켓 ' + ticketNumber + '의 결제를 확인하시겠습니까?')) {
+            const paymentId = 'PAY_' + Date.now();
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin/reservation/' + reservationId + '/confirm';
+
+            const paymentIdInput = document.createElement('input');
+            paymentIdInput.type = 'hidden';
+            paymentIdInput.name = 'paymentId';
+            paymentIdInput.value = paymentId;
+
+            form.appendChild(paymentIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function failPayment(button) {
+        const reservationId = button.getAttribute('data-id');
+        const ticketNumber = button.getAttribute('data-ticket');
+        const reason = prompt('실패 사유를 입력하세요:', '입금 확인 불가');
+
+        if (reason && reason.trim() !== '') {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin/reservation/' + reservationId + '/fail';
+
+            const reasonInput = document.createElement('input');
+            reasonInput.type = 'hidden';
+            reasonInput.name = 'reason';
+            reasonInput.value = reason;
+
+            form.appendChild(reasonInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+</body>
+</html>
