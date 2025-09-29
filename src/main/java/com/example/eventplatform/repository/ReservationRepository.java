@@ -49,4 +49,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // 이벤트와 사용 여부로 조회
     List<Reservation> findByEventIdAndUsed(Long eventId, Boolean used);
+
+    List<Reservation> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime startDate, LocalDateTime endDate);
 }

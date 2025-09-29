@@ -6,6 +6,8 @@ import com.example.eventplatform.repository.ReservationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -56,5 +58,30 @@ public class ReservationService {
      */
     public List<Reservation> getReservationsByEvent(Long eventId) {
         return reservationRepository.findByEventIdOrderByCreatedAtDesc(eventId);
+    }
+
+    /** 결제 상태별 예매 목록 */
+    public List<Reservation> getReservationsByStatus(PaymentStatus status) {
+        return reservationRepository.findByPaymentStatusOrderByCreatedAtDesc(status);
+    }
+
+    /** 기간별 예매 조회 */
+    public List<Reservation> getReservationsByPeriod(LocalDateTime startDate, LocalDateTime endDate) {
+        return reservationRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startDate, endDate);
+    }
+
+    /** 총 매출액 */
+    public long getTotalSales() {
+        return reservationRepository.findByPaymentStatusOrderByCreatedAtDesc(PaymentStatus.COMPLETED)
+                .stream()
+                .mapToLong(reservation -> reservation.getTotalPrice() != null ? reservation.getTotalPrice() : 0)
+                .sum();
+    }
+
+    /** 오늘 예약 목록 */
+    public List<Reservation> getTodayReservations() {
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        return reservationRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startOfDay, endOfDay);
     }
 }

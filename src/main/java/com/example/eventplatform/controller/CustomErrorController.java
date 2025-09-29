@@ -21,6 +21,9 @@ public class CustomErrorController implements ErrorController {
             switch (statusCode) {
                 case 404:
                     return "404";
+                case 403:
+                    model.addAttribute("errorMessage", "접근 권한이 없습니다.");
+                    return "error";
                 case 500:
                     model.addAttribute("errorMessage", "서버 내부 오류가 발생했습니다.");
                     return "error";
@@ -30,7 +33,7 @@ public class CustomErrorController implements ErrorController {
             }
         }
 
+        model.addAttribute("errorMessage", "알 수 없는 오류가 발생했습니다.");
         return "error";
     }
 }
-

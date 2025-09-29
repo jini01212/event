@@ -11,7 +11,7 @@ public class ValidationUtil {
             Pattern.compile("^01[0-9]-\\d{3,4}-\\d{4}$");
 
     private static final Pattern TICKET_NUMBER_PATTERN =
-            Pattern.compile("^TK\\d{12}$");
+            Pattern.compile("^TK\\d{12,15}$");
 
     /**
      * 이메일 형식 검증
@@ -35,26 +35,11 @@ public class ValidationUtil {
     }
 
     /**
-     * 문자열이 비어있지 않은지 검증
-     */
-    public static boolean isNotEmpty(String str) {
-        return str != null && !str.trim().isEmpty();
-    }
-
-    /**
-     * 숫자가 양수인지 검증
-     */
-    public static boolean isPositive(Integer number) {
-        return number != null && number > 0;
-    }
-
-    /**
-     * 전화번호 형식을 자동으로 포맷팅
+     * 전화번호 자동 포맷팅
      */
     public static String formatPhone(String phone) {
         if (phone == null) return "";
 
-        // 숫자만 추출
         String numbers = phone.replaceAll("[^0-9]", "");
 
         if (numbers.length() == 11 && numbers.startsWith("010")) {
@@ -67,6 +52,6 @@ public class ValidationUtil {
                     numbers.substring(6);
         }
 
-        return phone; // 포맷팅 실패 시 원본 반환
+        return phone;
     }
 }
